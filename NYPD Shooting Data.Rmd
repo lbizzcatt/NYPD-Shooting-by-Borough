@@ -1,0 +1,179 @@
+---
+output:
+  
+  pdf_document: default
+  html_document: default
+always_allow_html: true
+---
+# NYPD Shooting Data- Historic
+## Analysis of Shootings per Borough and their occur data and time
+
+
+
+We will first read in our data set
+
+```{r}
+library(readr)
+
+NYPD <- read_csv("https://data.cityofnewyork.us/api/views/833y-fsy8/rows.csv?accessType=DOWNLOAD")
+```
+Let us find the dimensions of the data table set and the column names associated.
+
+```{r}
+dim(NYPD)
+
+```
+```{r}
+colnames(NYPD)
+```
+Let us remove the column names that we will not use for the analysis and then make a datatable
+
+```{r}
+library(tibble)
+
+my_data <- NYPD
+my_data <- as_tibble(my_data)
+my_data
+```
+Below we will print the table with the reduced columns
+
+```{r}
+my_data2 <- my_data[, c(2, 3, 4, 9, 10)]
+my_data2
+```
+Now we will reorder the columns by borough name
+
+```{r}
+library(dplyr)
+
+my_data2 %>% arrange(BORO)
+```
+Now we will look at the frequency of shootings in each borough
+
+```{r}
+borough <- table(my_data2$BORO)
+borough <- as.data.frame(borough)
+borough$Percent <- round((borough$Freq / sum(borough$Freq)*100), 2)
+
+library(knitr)
+
+kable(borough)
+
+
+```
+Now that we have made a table, let us make it into a scatter plot
+
+```{r}
+library(plotly)
+
+scatter.plot <- ggplot(my_data2, aes(x = OCCUR_DATE, y = OCCUR_TIME, color = BORO)) + geom_point()
+
+ggplotly(scatter.plot)
+```
+
+As we can see, this data is hard to see, let us try a bar graph
+
+```{r}
+ggplot(borough, aes(x=Var1, y=Freq, fill=Var1)) + geom_bar(stat = "identity")
+```
+As we can see, the above data is easier to see. Although it looks like Brooklyn has had the most shootings in this historic data, let us see if this is still true with each year. There could be some years where other boroughs had higher shooting rates.
+
+## Bronx
+```{r}
+B <-subset(my_data2, BORO=='BRONX', select=c(BORO, OCCUR_DATE))
+
+n <- 4                                
+B$YEAR <- substr(B$OCCUR_DATE, nchar(B$OCCUR_DATE) - n + 1, nchar(B$OCCUR_DATE))
+
+
+B <- subset(B, select = -c(OCCUR_DATE))
+
+BRONX <- table(B$YEAR)
+BRONX <- as.data.frame(BRONX)
+
+ggplot(data=BRONX, aes(x=Var1, y=Freq, group=1)) +
+  geom_line()+
+  geom_point()+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+## Brroklyn
+
+```{r}
+Br <-subset(my_data2, BORO=='BRONX', select=c(BORO, OCCUR_DATE))
+
+n <- 4                               
+Br$YEAR <- substr(Br$OCCUR_DATE, nchar(Br$OCCUR_DATE) - n + 1, nchar(Br$OCCUR_DATE))
+
+
+Br <- subset(Br, select = -c(OCCUR_DATE))
+
+BROOKLYN <- table(Br$YEAR)
+BROOKLYN <- as.data.frame(BROOKLYN)
+
+ggplot(data=BROOKLYN, aes(x=Var1, y=Freq, group=1)) +
+  geom_line()+
+  geom_point()+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+## Manhattan
+
+```{r}
+M <-subset(my_data2, BORO=='MANHATTAN', select=c(BORO, OCCUR_DATE))
+
+n <- 4                                
+M$YEAR <- substr(M$OCCUR_DATE, nchar(M$OCCUR_DATE) - n + 1, nchar(M$OCCUR_DATE)) 
+
+
+M <- subset(M, select = -c(OCCUR_DATE))
+
+MANHATTAN <- table(M$YEAR)
+MANHATTAN <- as.data.frame(MANHATTAN)
+
+ggplot(data=MANHATTAN, aes(x=Var1, y=Freq, group=1)) +
+  geom_line()+
+  geom_point()+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+## Queens
+
+```{r}
+Q <-subset(my_data2, BORO=='QUEENS', select=c(BORO, OCCUR_DATE))
+
+n <- 4                                
+Q$YEAR <- substr(Q$OCCUR_DATE, nchar(Q$OCCUR_DATE) - n + 1, nchar(Q$OCCUR_DATE)) 
+
+
+Q <- subset(Q, select = -c(OCCUR_DATE))
+
+QUEENS <- table(Q$YEAR)
+QUEENS <- as.data.frame(QUEENS)
+
+ggplot(data=QUEENS, aes(x=Var1, y=Freq, group=1)) +
+  geom_line()+
+  geom_point()+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+## Staten Island
+
+```{r}
+S <-subset(my_data2, BORO=='STATEN ISLAND', select=c(BORO, OCCUR_DATE))
+
+n <- 4                               
+S$YEAR <- substr(S$OCCUR_DATE, nchar(S$OCCUR_DATE) - n + 1, nchar(S$OCCUR_DATE)) 
+
+
+S <- subset(S, select = -c(OCCUR_DATE))
+
+STATEN_ISLAND <- table(S$YEAR)
+STATEN_ISLAND <- as.data.frame(STATEN_ISLAND)
+
+ggplot(data=STATEN_ISLAND, aes(x=Var1, y=Freq, group=1)) +
+  geom_line()+
+  geom_point()+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+```
+
+## Conclusion
+
+We can see that although Brooklyn has had the most shootings of the five boroughs in the historic data, but within each year there are differences in which borough has the most data. Is is important to consider that each yer could be different instead of assuming that Brooklyn is unsafe. This could lead to bias if you just see the data from a large overview point as opposed to looking upclose at each year. It seems that each of the five boroughs run a risk of shooting, but interesting to see the difference in which ones are on the rise or which ones where rate of shooting incidences has dropped. 
